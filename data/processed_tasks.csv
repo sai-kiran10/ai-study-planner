@@ -1,0 +1,5 @@
+Tasks,Estimated_Hours,Difficulty,Deadline,Completion_History,Days_Left,Category_Reading,Category_Study
+Math Homework,0.25,0.666666667,11/20/2025,0.75,0.5,FALSE,TRUE
+Python Project,1,0.333333333,11/22/2025,0.25,1,FALSE,FALSE
+Read Research Paper,0,0,11/18/2025,1,0,TRUE,FALSE
+Database Assignment,0.5,1,11/21/2025,0,0.75,FALSE,TRUE
