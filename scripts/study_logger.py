@@ -1,7 +1,7 @@
 import pandas as pd
 import os
-from datetime import datetime
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
 # Paths
 TODAY_TASKS_PATH = os.path.join("..", "data", "selected_tasks_today.csv")
@@ -52,71 +52,69 @@ print("\n✅ Daily log saved to study_log.csv")
 log_df['Date'] = pd.to_datetime(log_df['Date'])
 today = pd.to_datetime(datetime.today().strftime("%Y-%m-%d"))
 
-# -----------------------------
-# Window 1: Today's Session
-# -----------------------------
+
+# Ensure 'Date' column is datetime
+log_df['Date'] = pd.to_datetime(log_df['Date'])
+
+# Today's date
+today = pd.to_datetime(datetime.today().strftime("%Y-%m-%d"))
+
+# Logs for today
 today_log = log_df[log_df['Date'] == today]
 
-# 1️⃣ Hours spent per task today
-plt.figure(figsize=(8,5))
-hours_today = today_log.groupby('Task')['Actual_Hours'].sum()
-hours_today.plot(kind='bar', color='#1f77b4', edgecolor='black', width=0.5)
-plt.title("Hours Spent per Task Today", fontsize=14, fontweight='bold')
-plt.xlabel("Task", fontsize=12)
-plt.ylabel("Hours", fontsize=12)
-plt.xticks(rotation=45)
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.tight_layout()
-plt.show(block=False)
+# Logs for last 7 days (weekly)
+last_week = log_df[log_df['Date'] >= (datetime.today() - timedelta(days=7))]
 
-# 2️⃣ Completion status scatter today
-plt.figure(figsize=(8,5))
-plt.scatter(today_log['Task'], today_log['Completion_Status'], s=100, c='#2ca02c', edgecolors='black', alpha=0.7)
-plt.title("Task Completion Status Today", fontsize=14, fontweight='bold')
-plt.xlabel("Task", fontsize=12)
-plt.ylabel("Completion (1=Done, 0=Not Done)", fontsize=12)
-plt.xticks(rotation=45)
-plt.yticks([0, 1])
-plt.grid(True, linestyle='--', alpha=0.7)
+
+# -----------------------------
+# Window 1: Today's Session (2 plots)
+# -----------------------------
+fig, axes = plt.subplots(1, 2, figsize=(14,5))
+
+# Hours per task today
+today_log.groupby('Task')['Actual_Hours'].sum().plot(kind='bar', ax=axes[0], color='#1f77b4', edgecolor='black', width=0.5)
+axes[0].set_title("Hours Spent per Task Today", fontsize=12, fontweight='bold')
+axes[0].set_xlabel("Task")
+axes[0].set_ylabel("Hours")
+axes[0].grid(axis='y', linestyle='--', alpha=0.7)
+
+# Completion scatter today
+axes[1].scatter(today_log['Task'], today_log['Completion_Status'], s=100, c='#2ca02c', edgecolors='black', alpha=0.7)
+axes[1].set_title("Task Completion Status Today", fontsize=12, fontweight='bold')
+axes[1].set_xlabel("Task")
+axes[1].set_ylabel("Completion (1=Done, 0=Not Done)")
+axes[1].set_yticks([0,1])
+axes[1].grid(True, linestyle='--', alpha=0.7)
+
 plt.tight_layout()
 plt.show(block=False)
 
 # -----------------------------
-# Window 2: Weekly Trends (Last 7 Days)
+# Window 2: Weekly Trends (3 plots)
 # -----------------------------
-last_week = log_df[log_df['Date'] >= (datetime.today() - pd.Timedelta(days=7))]
+fig, axes = plt.subplots(1, 3, figsize=(18,5))
 
-# 1️⃣ Tasks completed per day
-plt.figure(figsize=(8,5))
-tasks_per_day = last_week.groupby(last_week['Date'].dt.date)['Completion_Status'].sum()
-tasks_per_day.plot(kind='bar', color='#ff7f0e', edgecolor='black', width=0.5)
-plt.title('Tasks Completed per Day (Last 7 Days)', fontsize=14, fontweight='bold')
-plt.xlabel('Date', fontsize=12)
-plt.ylabel('Number of Tasks', fontsize=12)
-plt.xticks(rotation=45)
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.tight_layout()
-plt.show(block=False)
+# Tasks completed per day
+last_week.groupby(last_week['Date'].dt.date)['Completion_Status'].sum().plot(kind='bar', ax=axes[0], color='#ff7f0e', edgecolor='black', width=0.5)
+axes[0].set_title('Tasks Completed per Day', fontsize=12, fontweight='bold')
+axes[0].set_xlabel("Date")
+axes[0].set_ylabel("Number of Tasks")
+axes[0].grid(axis='y', linestyle='--', alpha=0.7)
 
-# 2️⃣ Hours spent per task in last 7 days
-plt.figure(figsize=(8,5))
-hours_week = last_week.groupby('Task')['Actual_Hours'].sum()
-hours_week.plot(kind='barh', color='#9467bd', edgecolor='black')
-plt.title('Total Hours per Task (Last 7 Days)', fontsize=14, fontweight='bold')
-plt.xlabel('Hours', fontsize=12)
-plt.ylabel('Task', fontsize=12)
-plt.grid(axis='x', linestyle='--', alpha=0.7)
-plt.tight_layout()
-plt.show(block=False)
+# Hours per task in week
+last_week.groupby('Task')['Actual_Hours'].sum().plot(kind='barh', ax=axes[1], color='#9467bd', edgecolor='black')
+axes[1].set_title("Total Hours per Task", fontsize=12, fontweight='bold')
+axes[1].set_xlabel("Hours")
+axes[1].set_ylabel("Task")
+axes[1].grid(axis='x', linestyle='--', alpha=0.7)
 
-# 3️⃣ Completion vs Task scatter (weekly)
-plt.figure(figsize=(8,5))
-plt.scatter(last_week['Task'], last_week['Completion_Status'], s=100, c='#d62728', edgecolors='black', alpha=0.7)
-plt.title("Task Completion Status (Last 7 Days)", fontsize=14, fontweight='bold')
-plt.xlabel("Task", fontsize=12)
-plt.ylabel("Completion (1=Done, 0=Not Done)", fontsize=12)
-plt.xticks(rotation=45)
-plt.yticks([0,1])
-plt.grid(True, linestyle='--', alpha=0.7)
+# Completion scatter week
+axes[2].scatter(last_week['Task'], last_week['Completion_Status'], s=100, c='#d62728', edgecolors='black', alpha=0.7)
+axes[2].set_title("Task Completion Status", fontsize=12, fontweight='bold')
+axes[2].set_xlabel("Task")
+axes[2].set_ylabel("Completion (1=Done, 0=Not Done)")
+axes[2].set_yticks([0,1])
+axes[2].grid(True, linestyle='--', alpha=0.7)
+
 plt.tight_layout()
-plt.show(block=True)  # final show blocks script so all windows stay open
+plt.show()
