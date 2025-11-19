@@ -1,8 +1,8 @@
 import pandas as pd
 import joblib
 import openai
-from datetime import timedelta, datetime
 import os
+from datetime import datetime
 
 # -----------------------------
 # LOAD API KEY FROM ENV
@@ -11,8 +11,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 if openai.api_key is None:
     raise ValueError(
-        "OpenAI API key not found. "
-        "Set OPENAI_API_KEY as an environment variable before running the script."
+        "OpenAI API key not found. Set OPENAI_API_KEY as an environment variable before running the script."
     )
 
 # -----------------------------
@@ -20,6 +19,7 @@ if openai.api_key is None:
 # -----------------------------
 DATA_PATH = os.path.join("..", "data", "processed_tasks.csv")
 MODEL_PATH = os.path.join("..", "data", "task_priority_model.pkl")
+TODAY_TASKS_PATH = os.path.join("..", "data", "selected_tasks_today.csv")
 
 # -----------------------------
 # LOAD MODEL AND DATA
@@ -84,6 +84,7 @@ def main():
     task_nums = input("\nEnter task numbers separated by commas (e.g., 1,3): ").split(",")
 
     selected_tasks = []
+    selected_task_names = []
     for tn in task_nums:
         tn = tn.strip()
         if not tn.isdigit():
@@ -96,6 +97,7 @@ def main():
                 "task": row["Tasks"],
                 "priority": priority
             })
+            selected_task_names.append(row["Tasks"])
 
     if not selected_tasks:
         print("No valid tasks selected. Exiting.")
@@ -104,7 +106,10 @@ def main():
     # Step 4: Sort by predicted priority
     selected_tasks.sort(key=lambda x: x["priority"], reverse=True)
 
-    # Step 5: Generate AI study plan
+    # Step 5: Save selected tasks for logger
+    pd.DataFrame({"Tasks": selected_task_names}).to_csv(TODAY_TASKS_PATH, index=False)
+
+    # Step 6: Generate AI study plan
     print("\n⏳ Generating your personalized study plan...\n")
     plan = generate_ai_plan(selected_tasks, available_hours)
     print(plan)
