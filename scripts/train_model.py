@@ -9,7 +9,7 @@ import os
 # PATHS
 # -----------------------------
 DATA_PATH = os.path.join("..", "data", "processed_tasks.csv")
-MODEL_PATH = os.path.join("..", "data", "task_time_model.pkl")
+MODEL_PATH = os.path.join("..", "data", "task_priority_model.pkl")
 
 # -----------------------------
 # LOAD DATA
@@ -17,12 +17,20 @@ MODEL_PATH = os.path.join("..", "data", "task_time_model.pkl")
 df = pd.read_csv(DATA_PATH)
 
 # -----------------------------
+# CREATE PRIORITY SCORE
+# -----------------------------
+df["Priority_Score"] = (
+    0.4 * df["Difficulty"] +
+    0.3 * (1 - df["Completion_History"]) +
+    0.2 * (1 - df["Estimated_Hours"]) +
+    0.5 * (1 - df["Days_Left"])
+)
+
+# -----------------------------
 # FEATURES & LABEL
 # -----------------------------
-# Using normalized columns from processed_tasks.csv
-# Example columns: Estimated_Hours, Difficulty, Completion_History, Days_Left, Category_Coding, Category_Reading
-X = df.drop(columns=["Tasks", "Deadline", "Priority_Score"]) if "Priority_Score" in df.columns else df.drop(columns=["Tasks", "Deadline"])
-y = df["Estimated_Hours"]  # predicting task duration
+X = df.drop(columns=["Tasks", "Deadline", "Priority_Score"])
+y = df["Priority_Score"]
 
 # -----------------------------
 # TRAIN/TEST SPLIT
